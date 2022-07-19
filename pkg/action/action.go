@@ -457,6 +457,9 @@ func (c *Configuration) renderResourcesForUpgrade(ch *chart.Chart, values chartu
 	const KEY = "nika.cai-inc.com"
 	var v = name
 	for index, m := range manifests {
+		if m.Head.Kind == "Role" || m.Head.Kind == "ClusterRole" {
+			return nil, nil, "", errors.New("can not create Role or ClusterRole")
+		}
 		if m.Head.Version == "apps/v1" && (m.Head.Kind == "Deployment" || m.Head.Kind == "ReplicaSet" || m.Head.Kind == "StatefulSet" || m.Head.Kind == "DaemonSet") {
 			apiObj := new(K8sYamlStruct)
 			err := yamlv2.Unmarshal([]byte(m.Content), apiObj)
@@ -566,7 +569,7 @@ func (c *Configuration) renderResourcesForUpgrade(ch *chart.Chart, values chartu
 		if (m.Head.Version == "v1" && (m.Head.Kind == "Pod" || m.Head.Kind == "Service" || m.Head.Kind == "PersistentVolumeClaim" || m.Head.Kind == "PersistentVolume" || m.Head.Kind == "ConfigMap" ||
 			m.Head.Kind == "Secret" || m.Head.Kind == "ServiceAccount")) ||
 			(m.Head.Version == "batch/v1" && (m.Head.Kind == "Job" || m.Head.Kind == "CronJob")) ||
-			(m.Head.Version == "networking.k8s.io/v1" && (m.Head.Kind == "Ingress" || m.Head.Kind == "NetworkPolicy")) {
+			((m.Head.Version == "networking.k8s.io/v1" || m.Head.Version == "networking.k8s.io/v1beta1" || m.Head.Version == "extensions/v1beta1") && (m.Head.Kind == "Ingress" || m.Head.Kind == "NetworkPolicy")) {
 			apiObj := new(K8sYamlStruct)
 			err := yamlv2.Unmarshal([]byte(m.Content), apiObj)
 			if err != nil {
